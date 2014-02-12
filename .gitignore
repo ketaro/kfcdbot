@@ -34,3 +34,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Virtualenv
+env/
+
+# kfcdbot data files
+.lastid
+kftweets.txt
