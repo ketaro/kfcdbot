@@ -2,17 +2,12 @@
 
 import sys
 import os
+import re
 from random import choice
 import twitter
 
 
 STARTKEY='STARTPAIR'
-
-
-#api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
-#                  consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
-#                  access_token_key=os.environ.get('TWITTER_ACCESS_TOKEN_KEY'),
-#                  access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET'))
 
 
 def make_chains(wordfiles):
@@ -79,6 +74,7 @@ def make_text(chains):
 
 def main():
     args = sys.argv
+    atpattern = re.compile(r'@(\w+)\b')
 
     if len(args) < 2:
         print """
@@ -98,8 +94,27 @@ def main():
     # Create the markov chain dictionary
     chain_dict = make_chains(args[1:])
 
-    print make_text(chain_dict)
-            
+    api = twitter.Api(consumer_key=os.environ.get('TWITTER_CONSUMER_KEY'),
+                     consumer_secret=os.environ.get('TWITTER_CONSUMER_SECRET'),
+                     access_token_key=os.environ.get('TWITTER_ACCESS_TOKEN_KEY'),
+                     access_token_secret=os.environ.get('TWITTER_ACCESS_TOKEN_SECRET'))
+
+    answer = ""
+    while answer.lower() != 'q':
+        tweet = make_text(chain_dict)
+        
+        # Replace @'s with ()'s
+        tweet = atpattern.sub(r'(\1)', tweet)
+        
+        print "\nGenerated %d characters:\n%s\n" % (len(tweet), tweet)
+        
+        print "Tweet this? ([n]/y/q): ",
+        
+        answer = sys.stdin.readline().strip()
+        
+        if answer.lower() == 'y':
+            api.PostUpdate(tweet)
+        
 #    random_text = make_text(chain_dict)
 #    print random_text
 
